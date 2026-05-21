@@ -29,8 +29,16 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'User registered successfully' })
   @ApiResponse({ status: 409, description: 'Email already registered' })
   @ApiResponse({ status: 400, description: 'Validation error' })
-  async signup(@Body() dto: SignupDto) {
-    return this.authService.signup(dto);
+  async signup(@Body() dto: SignupDto, @Request() req, @Response() res) {
+    const userAgent = req.headers['user-agent'];
+    const ipAddress = req.ip;
+    const token = await this.authService.signup({ dto, ipAddress, userAgent });
+    return res.cookie('accessToken', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 3600000,
+    });
   }
 
   @Post('signin')
@@ -43,8 +51,10 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: 'Invalid email or password' })
   @ApiResponse({ status: 400, description: 'Validation error' })
-  async signin(@Body() dto: SigninDto, @Response() res) {
-    const token = await this.authService.signin(dto);
+  async signin(@Body() dto: SigninDto, @Response() res, @Request() req) {
+    const ipAddress = req.ip;
+    const userAgent = req.headers['user-agent'];
+    const token = await this.authService.signin({ dto, ipAddress, userAgent });
     return res.cookie('accessToken', token, {
       httpOnly: true,
       secure: true,

@@ -2,24 +2,45 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/user/user.service';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
-import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { MeDto } from './dto/me.dto';
+import { SessionsService } from 'src/sessions/sessions.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UsersService,
-    private jwtService: JwtService,
+    private readonly sessionService: SessionsService,
   ) {}
-  async signup(dto: SignupDto) {
-    await this.userService.createUser(dto.name, dto.email, dto.password);
-
-    return {
-      message: 'User created successfully',
-    };
+  async signup({
+    dto,
+    ipAddress,
+    userAgent,
+  }: {
+    dto: SignupDto;
+    ipAddress: string;
+    userAgent: string;
+  }) {
+    const user = await this.userService.createUser(
+      dto.name,
+      dto.email,
+      dto.password,
+    );
+    return await this.sessionService.createSession({
+      userId: user.id.toString(),
+      ipAddress,
+      userAgent,
+    });
   }
-  async signin(dto: SigninDto) {
+  async signin({
+    dto,
+    ipAddress,
+    userAgent,
+  }: {
+    dto: SigninDto;
+    ipAddress: string;
+    userAgent: string;
+  }) {
     const user = await this.userService.findByEmail(dto.email);
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
@@ -28,11 +49,11 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    return await this.generateToken(user._id.toString());
-  }
-  private generateToken(userId: string): Promise<string> {
-    const payload = { sub: userId };
-    return this.jwtService.signAsync(payload);
+    return await this.sessionService.createSession({
+      userId: user.id.toString(),
+      ipAddress,
+      userAgent,
+    });
   }
 
   async me(dto: MeDto) {
@@ -41,6 +62,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid userId');
     }
 
-    return await this.generateToken(user._id.toString());
+    return user;
   }
 }
