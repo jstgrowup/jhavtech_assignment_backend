@@ -11,7 +11,11 @@ export class AuthGuard implements CanActivate {
   constructor(private readonly sessionService: SessionsService) {}
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
-    const token = request.cookies.accessToken;
+
+    const authHeader = request.headers.authorization;
+
+    const token = authHeader?.split(' ')[1];
+
     if (!token) {
       throw new UnauthorizedException('No token provided');
     }

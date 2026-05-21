@@ -4,8 +4,8 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Get,
   Request,
-  Response,
   UseGuards,
 } from '@nestjs/common';
 import { SignupDto } from './dto/signup.dto';
@@ -13,10 +13,10 @@ import { AuthService } from './auth.service';
 import { SigninDto } from './dto/signin.dto';
 import { AuthGuard } from './guards/auth.guard';
 import {
-  ApiCookieAuth,
   ApiOperation,
   ApiResponse,
   ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @Controller('auth')
@@ -66,10 +66,10 @@ export class AuthController {
     };
   }
 
-  @Post('me')
+  @Get('me')
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiCookieAuth('accessToken')
+  @ApiBearerAuth('accessToken')
   @ApiOperation({ summary: 'Get currently authenticated user' })
   @ApiResponse({
     status: 200,

@@ -15,7 +15,13 @@ async function bootstrap() {
     .setTitle('Dating App API')
     .setDescription('API documentation for the dating app matching system')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+      },
+      'accessToken',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, options);
