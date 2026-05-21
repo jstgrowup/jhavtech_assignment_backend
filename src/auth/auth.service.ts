@@ -3,7 +3,6 @@ import { UsersService } from 'src/user/user.service';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
 import * as bcrypt from 'bcrypt';
-import { MeDto } from './dto/me.dto';
 import { SessionsService } from 'src/sessions/sessions.service';
 
 @Injectable()
@@ -20,13 +19,13 @@ export class AuthService {
     dto: SignupDto;
     ipAddress: string;
     userAgent: string;
-  }) {
+  }): Promise<string> {
     const user = await this.userService.createUser(
       dto.name,
       dto.email,
       dto.password,
     );
-    return await this.sessionService.createSession({
+    return this.sessionService.createSession({
       userId: user.id.toString(),
       ipAddress,
       userAgent,
@@ -49,15 +48,15 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    return await this.sessionService.createSession({
+    return this.sessionService.createSession({
       userId: user.id.toString(),
       ipAddress,
       userAgent,
     });
   }
 
-  async me(dto: MeDto) {
-    const user = await this.userService.findById(dto.userId);
+  async me(userId: string) {
+    const user = await this.userService.findById(userId);
     if (!user) {
       throw new UnauthorizedException('Invalid userId');
     }

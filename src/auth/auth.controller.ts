@@ -28,39 +28,42 @@ export class AuthController {
   @ApiBody({ type: SignupDto })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
   @ApiResponse({ status: 409, description: 'Email already registered' })
-  @ApiResponse({ status: 400, description: 'Validation error' })
-  async signup(@Body() dto: SignupDto, @Request() req, @Response() res) {
+  async signup(@Body() dto: SignupDto, @Request() req) {
     const userAgent = req.headers['user-agent'];
     const ipAddress = req.ip;
     const token = await this.authService.signup({ dto, ipAddress, userAgent });
-    return res.cookie('accessToken', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: 3600000,
-    });
+    return {
+      message: 'User registered successfully',
+      data: {
+        token,
+      },
+    };
   }
 
   @Post('signin')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Sign in and receive access token as cookie' })
+  @ApiOperation({ summary: 'Sign in and receive access token' })
   @ApiBody({ type: SigninDto })
   @ApiResponse({
     status: 200,
-    description: 'Sets httpOnly accessToken cookie and returns user info',
+    description: 'Signin successfull',
+    schema: {
+      example: {
+        token: 'jfhwrflqwr323',
+      },
+    },
   })
   @ApiResponse({ status: 401, description: 'Invalid email or password' })
-  @ApiResponse({ status: 400, description: 'Validation error' })
-  async signin(@Body() dto: SigninDto, @Response() res, @Request() req) {
+  async signin(@Body() dto: SigninDto, @Request() req) {
     const ipAddress = req.ip;
     const userAgent = req.headers['user-agent'];
     const token = await this.authService.signin({ dto, ipAddress, userAgent });
-    return res.cookie('accessToken', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: 3600000,
-    });
+    return {
+      message: 'Signin successfull',
+      data: {
+        token,
+      },
+    };
   }
 
   @Post('me')
@@ -75,6 +78,19 @@ export class AuthController {
   @ApiResponse({
     status: 401,
     description: 'Unauthorized — missing or invalid token',
+    schema: {
+      example: {
+        name: 'Subham Dey',
+        age: 25,
+        gender: 'MALE',
+        city: 'mumbai',
+        interests: ['hiking', 'chess', 'cooking'],
+        photoUrl: 'https://example.com/photo.jpg',
+        preferredGender: 'MALE',
+        preferredAgeMin: 21,
+        preferredAgeMax: 30,
+      },
+    },
   })
   async me(@Request() req) {
     return this.authService.me(req.userId);

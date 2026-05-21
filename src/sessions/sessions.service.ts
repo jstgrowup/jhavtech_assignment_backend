@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Session, SessionDocument } from './schemas/session.schema';
+import { createHash, randomUUID } from 'crypto';
 
 @Injectable()
 export class SessionsService {
@@ -19,23 +20,25 @@ export class SessionsService {
     ipAddress: string;
     userAgent: string;
   }): Promise<string> {
-    const sessionId = crypto.randomUUID();
-
+    const rawToken = randomUUID();
+    const hashedToken = createHash('sha256').update(rawToken).digest('hex');
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
     await this.sessionModel.create({
-      token: sessionId,
+      token: hashedToken,
       userId: userId as any,
       ipAddress,
       userAgent,
       expiresAt,
     });
-    return sessionId;
+    return rawToken;
   }
   async validateSession(incomingToken: string): Promise<string> {
-    const session = await this.sessionModel.findOne({ token: incomingToken });
-
+    const hashedIncoming = createHash('sha256')
+      .update(incomingToken)
+      .digest('hex');
+    const session = await this.sessionModel.findOne({ token: hashedIncoming });
     if (!session) {
       throw new UnauthorizedException('Session is invalid or expired');
     }
