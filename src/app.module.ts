@@ -23,6 +23,6 @@ import { MatchesModule } from './matches/matches.module';
     MatchesModule,
   ],
   controllers: [AppController, MatchesController],
-  providers: [AppService, MatchesService],
+  providers: [AppService],
 })
 export class AppModule {}
