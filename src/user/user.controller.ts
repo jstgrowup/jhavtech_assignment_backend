@@ -10,7 +10,7 @@ export class UserController {
 
   @Get('profile')
   @UseGuards(AuthGuard)
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth('accessToken')
   @ApiOperation({ summary: 'Get current user profile' })
   getProfile(@Request() req) {
     return this.userService.findById(req.userId);
@@ -18,7 +18,7 @@ export class UserController {
 
   @Put('profile')
   @UseGuards(AuthGuard)
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth('accessToken')
   @ApiOperation({ summary: 'Update own profile' })
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
   @ApiResponse({ status: 400, description: 'Validation error' })

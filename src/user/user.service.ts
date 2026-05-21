@@ -23,10 +23,7 @@ export class UsersService {
     return user;
   }
 
-  async updateProfile(
-    id: string,
-    dto: UpdateProfileDto,
-  ): Promise<UserDocument> {
+  async updateProfile(id: string, dto: UpdateProfileDto) {
     const user = await this.userModel
       .findByIdAndUpdate(id, { $set: dto }, { new: true })
       .select('-password')
@@ -34,7 +31,7 @@ export class UsersService {
 
     if (!user) throw new NotFoundException('User not found');
 
-    return user;
+    return { message: 'Profile updated successfully' };
   }
   async createUser(
     name: string,
