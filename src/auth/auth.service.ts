@@ -13,25 +13,15 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
   async signup(dto: SignupDto) {
-    const user = await this.userService.createUser(
-      dto.name,
-      dto.email,
-      dto.password,
-    );
+    await this.userService.createUser(dto.name, dto.email, dto.password);
 
     return {
       message: 'User created successfully',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
     };
   }
   async signin(dto: SigninDto) {
     const user = await this.userService.findByEmail(dto.email);
     if (!user) {
-      // Intentionally vague — don't reveal whether email exists
       throw new UnauthorizedException('Invalid email or password');
     }
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
@@ -48,7 +38,6 @@ export class AuthService {
   async me(dto: MeDto) {
     const user = await this.userService.findById(dto.userId);
     if (!user) {
-      // Intentionally vague — don't reveal whether email exists
       throw new UnauthorizedException('Invalid userId');
     }
 

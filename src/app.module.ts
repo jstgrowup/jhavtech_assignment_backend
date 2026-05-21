@@ -6,8 +6,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MatchesController } from './matches/matches.controller';
-import { MatchesService } from './matches/matches.service';
 import { MatchesModule } from './matches/matches.module';
+import { SessionsModule } from './sessions/sessions.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -21,6 +21,7 @@ import { MatchesModule } from './matches/matches.module';
     AuthModule,
     UserModule,
     MatchesModule,
+    SessionsModule,
   ],
   controllers: [AppController, MatchesController],
   providers: [AppService],
