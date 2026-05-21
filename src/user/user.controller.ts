@@ -1,0 +1,29 @@
+import { Body, Controller, Get, Put, Request, UseGuards } from '@nestjs/common';
+import { UsersService } from './user.service';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { UpdateProfileDto } from './dto/updateprofile.dto';
+
+@Controller('user')
+export class UserController {
+  constructor(private readonly userService: UsersService) {}
+
+  @Get('profile')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Get current user profile' })
+  getProfile(@Request() req) {
+    return this.userService.findById(req.user._id);
+  }
+
+  @Put('profile')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Update own profile' })
+  @ApiResponse({ status: 200, description: 'Profile updated successfully' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  updateProfile(@Request() req, @Body() dto: UpdateProfileDto) {
+    return this.userService.updateProfile(req.user._id, dto);
+  }
+}
