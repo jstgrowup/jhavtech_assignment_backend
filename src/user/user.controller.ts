@@ -13,7 +13,7 @@ export class UserController {
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Get current user profile' })
   getProfile(@Request() req) {
-    return this.userService.findById(req.user._id);
+    return this.userService.findById(req.userId);
   }
 
   @Put('profile')
@@ -24,6 +24,6 @@ export class UserController {
   @ApiResponse({ status: 400, description: 'Validation error' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   updateProfile(@Request() req, @Body() dto: UpdateProfileDto) {
-    return this.userService.updateProfile(req.user._id, dto);
+    return this.userService.updateProfile(req.userId, dto);
   }
 }

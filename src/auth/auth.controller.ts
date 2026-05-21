@@ -77,7 +77,6 @@ export class AuthController {
     description: 'Unauthorized — missing or invalid token',
   })
   async me(@Request() req) {
-    const userId = req.userId;
-    return this.authService.me(userId);
+    return this.authService.me(req.userId);
   }
 }
