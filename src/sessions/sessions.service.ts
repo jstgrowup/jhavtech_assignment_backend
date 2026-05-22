@@ -45,4 +45,17 @@ export class SessionsService {
 
     return String(session.userId);
   }
+  async deleteSession(incomingToken: string): Promise<void> {
+    const hashedToken = createHash('sha256')
+      .update(incomingToken)
+      .digest('hex');
+
+    // 2. Find and delete the session document
+    const result = await this.sessionModel.deleteOne({ token: hashedToken });
+
+    // 3. If no document was deleted, the token was already invalid/expired
+    if (result.deletedCount === 0) {
+      throw new UnauthorizedException('Session is invalid or already expired');
+    }
+  }
 }

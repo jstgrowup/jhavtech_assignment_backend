@@ -7,6 +7,8 @@ import {
   Get,
   Request,
   UseGuards,
+  Headers,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { SignupDto } from './dto/signup.dto';
 import { AuthService } from './auth.service';
@@ -94,5 +96,26 @@ export class AuthController {
   })
   async me(@Request() req) {
     return this.authService.me(req.userId);
+  }
+  @Post('logout')
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({ summary: 'Logout the current session' })
+  @ApiResponse({ status: 200, description: 'Logged out successfully' })
+  @ApiResponse({ status: 401, description: 'Invalid or missing token' })
+  async logout(@Headers('authorization') authHeader: string) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException(
+        'Missing or malformed authorization header',
+      );
+    }
+
+    const rawToken = authHeader.split(' ')[1];
+    await this.authService.logout(rawToken);
+    return {
+      success: true,
+      message: 'Logged out successfully',
+    };
   }
 }

@@ -61,6 +61,9 @@ export class AuthService {
       throw new UnauthorizedException('Invalid userId');
     }
 
-    return user;
+    return { data: user };
+  }
+  async logout(rawToken: string): Promise<void> {
+    return this.sessionService.deleteSession(rawToken);
   }
 }

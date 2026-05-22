@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User, UserDocument } from '../user/schemas/user.schema';
 import {
+  Action,
   MatchAction,
   MatchActionDocument,
 } from './schemas/match-action.schema';
@@ -15,7 +16,7 @@ export class MatchesService {
     @InjectModel(MatchAction.name)
     private readonly matchActionModel: Model<MatchActionDocument>,
   ) {}
-  async getTopMatches(currentUserId: string): Promise<object[]> {
+  async getTopMatches(currentUserId: string) {
     // Step 1 — fetch the current user's full profile
     const currentUser = await this.userModel.findById(currentUserId).exec();
     if (!currentUser) return [];
@@ -108,5 +109,69 @@ export class MatchesService {
     score = interestScore * 0.5 + locationScore * 0.3 + ageScore * 0.2;
 
     return score; // value between 0 and 1
+  }
+
+  async recordAction(fromUserId: string, toUserId: string, action: Action) {
+    // Make sure the target user actually exists
+    const targetUser = await this.userModel.findById(toUserId).exec();
+    if (!targetUser) throw new NotFoundException('User not found');
+
+    // upsert — if action already exists update it, otherwise create it
+    // Handles edge case where user likes → passes the same person
+    await this.matchActionModel
+      .findOneAndUpdate(
+        { fromUser: fromUserId, toUser: toUserId },
+        { action },
+        { upsert: true, new: true },
+      )
+      .exec();
+
+    // If it's a like, check for a mutual match
+    if (action === Action.LIKE) {
+      const mutualLike = await this.matchActionModel
+        .findOne({
+          fromUser: toUserId, // the other person
+          toUser: fromUserId, // liked us back
+          action: Action.LIKE,
+        })
+        .exec();
+
+      // Both users liked each other — it's a match!
+      if (mutualLike) {
+        return { message: 'Its a match!', mutual: true };
+      }
+    }
+
+    return { message: 'Action recorded', mutual: false };
+  }
+
+  async getMutualMatches(currentUserId: string) {
+    // Step 1 — find everyone the current user has liked
+    const myLikes = await this.matchActionModel
+      .find({ fromUser: currentUserId, action: Action.LIKE })
+      .select('toUser')
+      .exec();
+
+    const myLikedUserIds = myLikes.map((a) => a.toUser);
+
+    // Step 2 — from those, find who also liked us back
+    const mutualActions = await this.matchActionModel
+      .find({
+        fromUser: { $in: myLikedUserIds }, // they liked someone
+        toUser: currentUserId, // that someone is us
+        action: Action.LIKE,
+      })
+      .select('fromUser')
+      .exec();
+
+    const mutualUserIds = mutualActions.map((a) => a.fromUser);
+
+    // Step 3 — fetch their profiles
+    const mutualUsers = await this.userModel
+      .find({ _id: { $in: mutualUserIds } })
+      .select('-password')
+      .exec();
+
+    return mutualUsers;
   }
 }

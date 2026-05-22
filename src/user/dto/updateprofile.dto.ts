@@ -8,8 +8,10 @@ import {
   IsOptional,
   Min,
   Max,
+  ValidateIf,
 } from 'class-validator';
 import { Gender } from '../schemas/user.schema';
+import { Transform } from 'class-transformer';
 
 export class UpdateProfileDto {
   // ── Basic Info ───────────────────────────────────────────────────
@@ -46,7 +48,9 @@ export class UpdateProfileDto {
 
   @ApiPropertyOptional({ example: 'https://example.com/photo.jpg' })
   @IsOptional()
-  @IsUrl()
+  @ValidateIf((o) => o.photoUrl !== '' && o.photoUrl !== null) // ← only validate if non-empty
+  @IsUrl({}, { message: 'photoUrl must be a valid URL' })
+  @Transform(({ value }) => (value === '' ? null : value)) // ← convert empty string to null
   photoUrl?: string;
 
   // ── Preferences ──────────────────────────────────────────────────
