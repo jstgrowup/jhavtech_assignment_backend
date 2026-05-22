@@ -17,11 +17,11 @@ export class MatchesService {
     private readonly matchActionModel: Model<MatchActionDocument>,
   ) {}
   async getTopMatches(currentUserId: string) {
-    // Step 1 — fetch the current user's full profile
+    // Fetch the current user's full profile
     const currentUser = await this.userModel.findById(currentUserId).exec();
     if (!currentUser) return [];
 
-    // Step 2 — find all users this person has already liked or passed
+    // Find all users this person has already liked or passed
     // So we don't show the same profile twice
     const seenActions = await this.matchActionModel
       .find({ fromUser: currentUserId })
@@ -30,7 +30,7 @@ export class MatchesService {
 
     const seenUserIds = seenActions.map((a) => a.toUser);
 
-    // Step 3 — query candidates with hard filters
+    // Query candidates with hard filters
     // These are non-negotiable — if they don't match preferences, skip entirely
     const filterQuery: Record<string, any> = {
       _id: {
@@ -53,13 +53,13 @@ export class MatchesService {
       .select('-password')
       .exec();
 
-    // Step 4 — score each candidate
+    // Score each candidate
     const scored = candidates.map((candidate) => {
       const score = this.calculateScore(currentUser, candidate);
       return { candidate, score };
     });
 
-    // Step 5 — sort by score descending, return top 10
+    // Sort by score descending, return top 10
     return scored
       .sort((a, b) => b.score - a.score)
       .slice(0, 10)
@@ -87,15 +87,14 @@ export class MatchesService {
       ...currentUser.interests,
       ...candidate.interests,
     ]).size;
-
+    2;
+    4;
     const interestScore =
       totalUniqueInterests > 0 ? sharedInterests / totalUniqueInterests : 0;
 
-    // ── Factor 2: Location ───────────────────────────────────────────
     // Simple city match — same city = full points
     const locationScore = currentUser.city === candidate.city ? 1 : 0;
 
-    // ── Factor 3: Age Preference Match ───────────────────────────────
     // Does the candidate also prefer our age range?
     // Rewards mutual compatibility, not just one-sided
     const ageScore =
@@ -104,7 +103,6 @@ export class MatchesService {
         ? 1
         : 0;
 
-    // ── Weighted Final Score ─────────────────────────────────────────
     // Interests weighted highest since it's the most meaningful signal
     score = interestScore * 0.5 + locationScore * 0.3 + ageScore * 0.2;
 
@@ -116,7 +114,7 @@ export class MatchesService {
     const targetUser = await this.userModel.findById(toUserId).exec();
     if (!targetUser) throw new NotFoundException('User not found');
 
-    // upsert — if action already exists update it, otherwise create it
+    // If action already exists update it, otherwise create it
     // Handles edge case where user likes → passes the same person
     await this.matchActionModel
       .findOneAndUpdate(
@@ -146,7 +144,7 @@ export class MatchesService {
   }
 
   async getMutualMatches(currentUserId: string) {
-    // Step 1 — find everyone the current user has liked
+    // Find everyone the current user has liked
     const myLikes = await this.matchActionModel
       .find({ fromUser: currentUserId, action: Action.LIKE })
       .select('toUser')
@@ -154,7 +152,7 @@ export class MatchesService {
 
     const myLikedUserIds = myLikes.map((a) => a.toUser);
 
-    // Step 2 — from those, find who also liked us back
+    // From those, find who also liked us back
     const mutualActions = await this.matchActionModel
       .find({
         fromUser: { $in: myLikedUserIds }, // they liked someone
@@ -166,7 +164,7 @@ export class MatchesService {
 
     const mutualUserIds = mutualActions.map((a) => a.fromUser);
 
-    // Step 3 — fetch their profiles
+    // Fetch their profiles
     const mutualUsers = await this.userModel
       .find({ _id: { $in: mutualUserIds } })
       .select('-password')
