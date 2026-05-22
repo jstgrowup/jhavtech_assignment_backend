@@ -8,6 +8,7 @@ import {
   Request,
   UseGuards,
   Headers,
+  Response,
 } from '@nestjs/common';
 import { SignupDto } from './dto/signup.dto';
 import { AuthService } from './auth.service';
@@ -19,6 +20,12 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict' as const,
+  maxAge: 7 * 60 * 60 * 1000,
+};
 
 @Controller('auth')
 export class AuthController {
@@ -27,44 +34,31 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register a new user' })
   @ApiBody({ type: SignupDto })
-  @ApiResponse({ status: 201, description: 'User registered successfully' })
+  @ApiResponse({ status: 201, description: 'User registered, cookie set' })
   @ApiResponse({ status: 409, description: 'Email already registered' })
-  async signup(@Body() dto: SignupDto, @Request() req) {
+  async signup(@Body() dto: SignupDto, @Request() req, @Response() res) {
     const userAgent = req.headers['user-agent'];
     const ipAddress = req.ip;
     const token = await this.authService.signup({ dto, ipAddress, userAgent });
-    return {
-      message: 'User registered successfully',
-      data: {
-        token,
-      },
-    };
+
+    res.cookie('accessToken', token, COOKIE_OPTIONS);
+
+    return res.json({ message: 'User registered successfully' });
   }
 
   @Post('signin')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Sign in and receive access token' })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Sign in and set access token cookie' })
   @ApiBody({ type: SigninDto })
-  @ApiResponse({
-    status: 200,
-    description: 'Signin successfull',
-    schema: {
-      example: {
-        token: 'jfhwrflqwr323',
-      },
-    },
-  })
-  @ApiResponse({ status: 401, description: 'Invalid email or password' })
-  async signin(@Body() dto: SigninDto, @Request() req) {
-    const ipAddress = req.ip;
+  @ApiResponse({ status: 200, description: 'Signin successful, cookie set' })
+  async signin(@Body() dto: SigninDto, @Request() req, @Response() res) {
     const userAgent = req.headers['user-agent'];
+    const ipAddress = req.ip;
     const token = await this.authService.signin({ dto, ipAddress, userAgent });
-    return {
-      message: 'Signin successfull',
-      data: {
-        token,
-      },
-    };
+
+    res.cookie('accessToken', token, COOKIE_OPTIONS);
+
+    return res.json({ message: 'Signin successful' });
   }
 
   @Get('me')
@@ -99,15 +93,9 @@ export class AuthController {
   @Post('logout')
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth('accessToken')
-  @ApiOperation({ summary: 'Logout the current session' })
-  @ApiResponse({ status: 200, description: 'Logged out successfully' })
-  @ApiResponse({ status: 401, description: 'Invalid or missing token' })
-  async logout(@Headers('authorization') authHeader: string) {
-    const rawToken = authHeader.split(' ')[1];
-    await this.authService.logout(rawToken);
-    return {
-      message: 'Logged out successfully',
-    };
+  @ApiOperation({ summary: 'Logout and clear access token cookie' })
+  async logout(@Response() res) {
+    res.clearCookie('accessToken', COOKIE_OPTIONS);
+    return res.json({ message: 'Logged out successfully' });
   }
 }

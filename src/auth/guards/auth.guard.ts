@@ -12,12 +12,10 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
 
-    const authHeader = request.headers.authorization;
-
-    const token = authHeader?.split(' ')[1];
+    const token = request.cookies?.['accessToken'];
 
     if (!token) {
-      throw new UnauthorizedException('No token provided');
+      throw new UnauthorizedException('No token provided in cookies');
     }
     try {
       const userId = await this.sessionService.validateSession(token);

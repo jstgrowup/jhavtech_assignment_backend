@@ -23,7 +23,7 @@ export class SessionsService {
     const rawToken = randomUUID();
     const hashedToken = createHash('sha256').update(rawToken).digest('hex');
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
+    expiresAt.setHours(expiresAt.getHours() + 7);
 
     await this.sessionModel.create({
       token: hashedToken,
