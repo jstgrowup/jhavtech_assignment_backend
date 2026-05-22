@@ -8,8 +8,9 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { MatchesService } from './matches.service';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
+
 import { Action } from './schemas/match-action.schema';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
 @ApiTags('Matches')
 @ApiBearerAuth('access-token')

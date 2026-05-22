@@ -4,8 +4,8 @@ import { MatchesService } from './matches.service';
 import { MatchesController } from './matches.controller';
 import { MatchAction, MatchActionSchema } from './schemas/match-action.schema';
 import { User, UserSchema } from '../user/schemas/user.schema';
-import { UserModule } from 'src/user/user.module';
-import { SessionsModule } from 'src/sessions/sessions.module';
+import { UserModule } from '../user/user.module';
+import { SessionsModule } from '../sessions/sessions.module';
 
 @Module({
   imports: [

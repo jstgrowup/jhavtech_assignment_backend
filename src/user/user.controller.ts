@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Put, Request, UseGuards } from '@nestjs/common';
 import { UsersService } from './user.service';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UpdateProfileDto } from './dto/updateprofile.dto';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
 @Controller('user')
 export class UserController {
