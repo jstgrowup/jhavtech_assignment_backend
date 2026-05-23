@@ -11,7 +11,6 @@ A scalable matchmaking backend built with NestJS and MongoDB featuring personali
 - Swipe interactions (Like / Pass)
 - Mutual match detection
 - Compatibility scoring algorithm
-- Session tracking and revocation support
 - MongoDB + Mongoose integration
 - Modular NestJS architecture
 - REST API architecture
@@ -25,7 +24,7 @@ A scalable matchmaking backend built with NestJS and MongoDB featuring personali
 - MongoDB
 - Mongoose
 - Node.js
-- SHA-256 Token Hashing
+- JWT (JSON Web Tokens)
 
 ---
 
@@ -33,14 +32,10 @@ A scalable matchmaking backend built with NestJS and MongoDB featuring personali
 
 ```bash
 src/
-├── auth/
-├── users/
-├── match/
-├── session/
-├── common/
-├── guards/
-├── middleware/
-├── schemas/
+├── auth/          # JWT auth, guards, signup/login/logout
+├── user/          # User schema, profile CRUD
+├── matches/       # Matching algorithm, like/pass, mutual matches
+├── common/        # Shared utilities and types
 └── main.ts
 ```
 
@@ -54,6 +49,7 @@ Create a `.env` file:
 MONGODB_URI=mongodb://localhost/jhavtech
 PORT=8000
 CORS_ORIGIN=http://localhost:3000
+JWT_SECRET=your-secret-key
 NODE_ENV=local
 ```
 
@@ -86,25 +82,51 @@ npm run start:dev
 
 ## Authentication
 
-| Method | Endpoint     | Description            |
-| ------ | ------------ | ---------------------- |
-| POST   | /auth/signup | Register new user      |
-| POST   | /auth/login  | Login user             |
-| POST   | /auth/logout | Logout user            |
-| GET    | /auth/me     | Get authenticated user |
+| Method | Endpoint     | Description                     |
+| ------ | ------------ | ------------------------------- |
+| POST   | /auth/signup | Register and receive JWT cookie |
+| POST   | /auth/signin | Login and receive JWT cookie    |
+| POST   | /auth/logout | Clear JWT cookie                |
+| GET    | /auth/me     | Get authenticated user profile  |
+
+## Users
+
+| Method | Endpoint      | Description     |
+| ------ | ------------- | --------------- |
+| GET    | /user/profile | Get own profile |
+| PUT    | /user/profile | Update profile  |
 
 ## Match System
 
-| Method | Endpoint               | Description            |
-| ------ | ---------------------- | ---------------------- |
-| GET    | /match/recommendations | Get top matches        |
-| POST   | /match/action          | Like or pass a profile |
-| GET    | /match/mutual          | Get mutual matches     |
+| Method | Endpoint          | Description                      |
+| ------ | ----------------- | -------------------------------- |
+| GET    | /matches          | Get top 10 compatibility matches |
+| POST   | /matches/:id/like | Like a profile                   |
+| POST   | /matches/:id/pass | Pass on a profile                |
+| GET    | /matches/mutual   | Get mutual matches               |
 
 ---
 
-# Database Diagram
+# Compatibility Scoring
 
-The project database schema can be visualized using:
+Matches are ranked using a weighted algorithm:
 
-- dbdiagram.io (https://dbdiagram.io/d/6a109c77dfb20dafcdd1dc5a)
+| Factor           | Weight | Logic                                     |
+| ---------------- | ------ | ----------------------------------------- |
+| Shared Interests | 50%    | Jaccard similarity of interest arrays     |
+| Same City        | 30%    | Exact city name match                     |
+| Mutual Age Fit   | 20%    | Current user's age fits candidate's range |
+
+---
+
+# Database Schema
+
+View the full schema diagram at:
+https://dbdiagram.io/d/6a109c77dfb20dafcdd1dc5a
+
+---
+
+# API Documentation
+
+Swagger UI available at:
+http://localhost:8000/docs
