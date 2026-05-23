@@ -20,10 +20,14 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+// sameSite: 'none' is the only value that allows cookies across different origins
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  sameSite:
+    process.env.NODE_ENV === 'production'
+      ? ('none' as const) // cross-origin needs 'none'
+      : ('lax' as const),
   maxAge: 7 * 60 * 60 * 1000,
 };
 
