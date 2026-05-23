@@ -5,12 +5,14 @@ import { SigninDto } from './dto/signin.dto';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../user/user.service';
 import { SessionsService } from '../sessions/sessions.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UsersService,
-    private readonly sessionService: SessionsService,
+    // private readonly sessionService: SessionsService,
+    private readonly jwtService: JwtService,
   ) {}
   async signup({
     dto,
@@ -26,10 +28,13 @@ export class AuthService {
       dto.email,
       dto.password,
     );
-    return this.sessionService.createSession({
-      userId: user.id.toString(),
-      ipAddress,
-      userAgent,
+    // return this.sessionService.createSession({
+    //   userId: user.id.toString(),
+    //   ipAddress,
+    //   userAgent,
+    // });
+    return this.jwtService.signAsync({
+      sub: user._id,
     });
   }
   async signin({
@@ -49,10 +54,14 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    return this.sessionService.createSession({
-      userId: user.id.toString(),
-      ipAddress,
-      userAgent,
+
+    // return this.sessionService.createSession({
+    //   userId: user.id.toString(),
+    //   ipAddress,
+    //   userAgent,
+    // });
+    return this.jwtService.signAsync({
+      sub: user._id,
     });
   }
 
@@ -64,7 +73,7 @@ export class AuthService {
 
     return { data: user };
   }
-  async logout(rawToken: string): Promise<void> {
-    return this.sessionService.deleteSession(rawToken);
-  }
+  // async logout(rawToken: string): Promise<void> {
+  //   return this.sessionService.deleteSession(rawToken);
+  // }
 }
