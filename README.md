@@ -1,13 +1,12 @@
 # Matchmaking Backend API
 
-A scalable matchmaking backend built with NestJS and MongoDB featuring personalized match recommendations, swipe-based interactions, mutual matching, and secure stateful session authentication using opaque tokens.
+A scalable matchmaking backend built with NestJS and MongoDB featuring personalized match recommendations, swipe-based interactions, mutual matching, and JWT-based authentication.
 
 ---
 
 # Features
 
-- Secure stateful session-based authentication
-- Opaque token authentication with hashed session storage
+- JWT-based authentication with httpOnly cookie storage
 - Personalized match recommendation engine
 - Swipe interactions (Like / Pass)
 - Mutual match detection
