@@ -1,17 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import {
-  IsString,
-  IsInt,
-  IsEnum,
-  IsArray,
-  IsUrl,
-  IsOptional,
-  Min,
-  Max,
-  ValidateNested,
-  IsIn,
-} from 'class-validator';
 export type UserDocument = HydratedDocument<User>;
 export enum Gender {
   MALE = 'male',

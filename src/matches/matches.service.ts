@@ -87,8 +87,7 @@ export class MatchesService {
       ...currentUser.interests,
       ...candidate.interests,
     ]).size;
-    2;
-    4;
+
     const interestScore =
       totalUniqueInterests > 0 ? sharedInterests / totalUniqueInterests : 0;
 
