@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MatchesController } from './matches/matches.controller';
 import { MatchesModule } from './matches/matches.module';
 import { SessionsModule } from './sessions/sessions.module';
+import { LogModule } from './log/log.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -22,6 +23,7 @@ import { SessionsModule } from './sessions/sessions.module';
     UserModule,
     MatchesModule,
     SessionsModule,
+    LogModule,
   ],
   controllers: [AppController, MatchesController],
   providers: [AppService],
