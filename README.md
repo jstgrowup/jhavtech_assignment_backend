@@ -121,6 +121,10 @@ Matches are ranked using a weighted algorithm:
 
 ---
 
+## Error Handling
+
+A global `LogExceptionFilter` catches every exception across the app. HTTP exceptions (4xx) are logged with their status and message. Unexpected runtime errors (5xx) additionally capture the full stack trace. All errors are persisted to MongoDB via `LogService` for audit and debugging purposes.
+
 # Database Schema
 
 View the full schema diagram at:
